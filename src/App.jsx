@@ -1,32 +1,38 @@
 import { Card, CardBody, Container, Flex, Heading, Image, Input, Stack, Text } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
+import ReactPaginate from 'react-paginate';
 import styles from './App.module.css';
 
 const { 
   VITE_API_KEY: API_KEY,
   VITE_DEFAULT_POSTER_URL: defaultPoster, 
   VITE_POSTER_URL: posterURL,
-  VITE_MOVIE_API: movieApiUrl 
+  VITE_MOVIE_API: movieApiUrl,
+  VITE_MOVIE_SEARCH_API: movieSearchApiUrl,
 } = import.meta.env;
 
-function useMovies(lang = 'uk') {
+function useMovies(query, lang = 'uk') {
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState();
 
-  const url = new URL(movieApiUrl);
+  const url = new URL(query ? movieSearchApiUrl : movieApiUrl);
   url.searchParams.set('api_key', API_KEY);
   url.searchParams.set('language', lang);
+  if (query) url.searchParams.set('query', query.trim());
+  if (page) url.searchParams.set('page', page);
 
   useEffect(() => {
     fetch(url.toString())
       .then(response => response.json())
       .then(movies => {        
         setPage(movies.page);
+        setTotalPages(movies.total_pages);
         setMovies(movies.results);
       });
-  }, []);
+  }, [page, query]);
 
-  return [movies, page, setPage];
+  return [movies, totalPages, setPage];
 }
 
 function Movies({ movies }) {
@@ -42,18 +48,22 @@ function Movies({ movies }) {
           <Flex align="center" justify="space-between">
             <Heading size='md'>{movie.title || movie.name}</Heading>
             <Flex direction="row">
-              <Image src="/public/star.svg" width="30" height="30" alt="Star" />
-              <Text marginLeft="2" fontWeight="bold" fontSize="24">{movie.vote_average.toFixed(2)}</Text>
+              <Image src="/star.svg" width="30" height="30" alt="Star" />
+              {movie.vote_agerage && (
+                <Text marginLeft="2" fontWeight="bold" fontSize="24">{movie.vote_average.toFixed(2)}</Text>
+              )}
             </Flex>
           </Flex>
           <Text noOfLines={3} color='grey.200'>{movie.overview}</Text>
-          <Text noOfLines={3} color='grey.600' fontWeight="bold">
-            Прем'єра в Україні: {new Intl.DateTimeFormat('uk-UA', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric'
-            }).format(new Date(movie.release_date || movie.first_air_date))}
-          </Text>
+          {movie.first_air_date || movie.release_date && (
+            <Text noOfLines={3} color='grey.600' fontWeight="bold">
+              Прем'єра в Україні: {new Intl.DateTimeFormat('uk-UA', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+              }).format(new Date(movie.first_air_date || movie.release_date))}
+            </Text>
+          )}
         </Stack>
       </CardBody>
     </Card>
@@ -61,16 +71,33 @@ function Movies({ movies }) {
 }
 
 function App() {
-  const [movies, page, setPage] = useMovies();
+  const [search, setSearch] = useState('');
+  const defferedSearch = useDeferredValue(search);
+  const [movies, totalPages, setPage] = useMovies(defferedSearch);
   
   return (
     <main className={styles.App}>
       <header className={styles.App__Header}></header>
       <Container centerContent>
         <Flex width='100%' direction="column">
-          <Input id="search" placeholder="Оберіть фільм" type="search" />
+          <Input
+            id="search" 
+            value={search} 
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Оберіть фільм" 
+            type="search" 
+          />
         </Flex>
-        {movies.length > 0 && <Movies movies={movies} />}
+        <Movies movies={movies} />
+        <ReactPaginate
+          breakLabel="..."
+          nextLabel=">"
+          onPageChange={next => setPage(next.selected + 1)}
+          pageRangeDisplayed={5}
+          pageCount={totalPages}
+          previousLabel="<"
+          renderOnZeroPageCount={null}
+        />
       </Container>
     </main>
   )
