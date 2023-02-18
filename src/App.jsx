@@ -1,5 +1,5 @@
 import { Card, CardBody, Container, Flex, Heading, Image, Input, Stack, Text } from '@chakra-ui/react';
-import { useDeferredValue, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import styles from './App.module.css';
 
@@ -11,7 +11,7 @@ const {
   VITE_MOVIE_SEARCH_API: movieSearchApiUrl,
 } = import.meta.env;
 
-function useMovies(query, lang = 'uk') {
+function useMovies(query = '', lang = 'uk') {
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState();
@@ -19,7 +19,7 @@ function useMovies(query, lang = 'uk') {
   const url = new URL(query ? movieSearchApiUrl : movieApiUrl);
   url.searchParams.set('api_key', API_KEY);
   url.searchParams.set('language', lang);
-  if (query) url.searchParams.set('query', query.trim());
+  if (query) url.searchParams.set('query', query?.trim());
   if (page) url.searchParams.set('page', page);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ function Movies({ movies }) {
             <Heading size='md'>{movie.title || movie.name}</Heading>
             <Flex direction="row">
               <Image src="/star.svg" width="30" height="30" alt="Star" />
-              {movie.vote_agerage && (
+              {movie.vote_average && (
                 <Text marginLeft="2" fontWeight="bold" fontSize="24">{movie.vote_average.toFixed(2)}</Text>
               )}
             </Flex>
@@ -70,15 +70,16 @@ function Movies({ movies }) {
   ));
 }
 
-function App() {
+export default function App() {
   const [search, setSearch] = useState('');
-  const defferedSearch = useDeferredValue(search);
-  const [movies, totalPages, setPage] = useMovies(defferedSearch);
+  const [movies, totalPages, setPage] = useMovies(search);
   
   return (
     <main className={styles.App}>
-      <header className={styles.App__Header}></header>
       <Container centerContent>
+        <Text marginTop="12" marginBottom="12" role="heading" as="h1" fontSize='50px' color='tomato'>
+          Кінодовідник  
+        </Text>
         <Flex width='100%' direction="column">
           <Input
             id="search" 
@@ -94,13 +95,21 @@ function App() {
           nextLabel=">"
           onPageChange={next => setPage(next.selected + 1)}
           pageRangeDisplayed={5}
-          pageCount={totalPages}
+          pageCount={totalPages > 500 ? 500 : totalPages}
           previousLabel="<"
+          pageClassName="page-item"
+          pageLinkClassName="page-link"
+          previousClassName="page-item"
+          previousLinkClassName="page-link"
+          nextClassName="page-item"
+          nextLinkClassName="page-link"
+          breakClassName="page-item"
+          breakLinkClassName="page-link"
+          containerClassName="pagination"
+          activeClassName="active"
           renderOnZeroPageCount={null}
         />
       </Container>
     </main>
   )
 }
-
-export default App
