@@ -1,4 +1,4 @@
-import { Card, CardBody, Container, Flex, Heading, Image, Input, Stack, Text } from '@chakra-ui/react';
+import { Button, Card, CardBody, Container, Flex, Heading, Image, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Text, useDisclosure } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import styles from './App.module.css';
@@ -35,9 +35,9 @@ function useMovies(query = '', lang = 'uk') {
   return [movies, totalPages, setPage];
 }
 
-function Movies({ movies }) {
+function Movies({ movies, onMovieSelect }) {
   return movies.map(movie => (
-    <Card cursor="pointer" key={movie.id} margin="8">
+    <Card onClick={() => onMovieSelect(movie)} cursor="pointer" key={movie.id} margin="8">
       <CardBody>
         <Image
           src={movie.poster_path ? posterURL + movie.poster_path : defaultPoster}
@@ -70,9 +70,43 @@ function Movies({ movies }) {
   ));
 }
 
+function Trailer({ movie: { id, title } }) {
+  const [key, setKey] = useState(null);
+
+  useEffect(() => {
+    const url = new URL(`https://api.themoviedb.org/3/${title ? "movie" : "tv"}/${id}/videos`);
+    url.searchParams.set('api_key', API_KEY);
+    url.searchParams.set('language', 'ua');
+    
+    fetch(url.toString())
+      .then(res => res.json())
+      .then(output => setKey(output.results?.[0].key));
+  }, []);
+
+  if (!key) {
+    return <Text color="coral" marginBottom="4">На жаль, трейлера немає</Text>
+  } else {
+    return (
+      <iframe width="100%" height="360" 
+        src={`https://www.youtube.com/embed/${key}`} 
+        frameborder="0" 
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen
+      ></iframe>
+    )
+  }
+}
+
 export default function App() {
+  const { onClose } = useDisclosure();
   const [search, setSearch] = useState('');
   const [movies, totalPages, setPage] = useMovies(search);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+
+  function onDetailsClose() {
+    setSelectedMovie(null);
+    onClose();
+  }
   
   return (
     <main className={styles.App}>
@@ -89,7 +123,48 @@ export default function App() {
             type="search" 
           />
         </Flex>
-        <Movies movies={movies} />
+        <Movies movies={movies} onMovieSelect={setSelectedMovie} />
+        
+        {selectedMovie && (
+          <Modal size='2xl' isOpen={!!selectedMovie} onClose={onDetailsClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>{selectedMovie.title || selectedMovie.name}</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Image
+                  src={selectedMovie.poster_path ? posterURL + selectedMovie.poster_path : defaultPoster}
+                  alt={selectedMovie.title || selectedMovie.name}
+                  borderRadius='lg'
+                  marginBottom="4"
+                  objectFit="cover"
+                />
+                {selectedMovie.vote_average && (
+                  <Text color='grey.100' marginBottom="4" fontWeight="bold">Рейтинг: {selectedMovie.vote_average}</Text>
+                )}
+                {selectedMovie.overview && (
+                  <Text color='grey.100' marginBottom="4">{selectedMovie.overview}</Text>
+                )}
+                {selectedMovie.first_air_date || selectedMovie.release_date && (
+                  <Text marginBottom="4" color='grey.600' fontSize="16" fontWeight="bold">
+                    Прем'єра: {new Intl.DateTimeFormat('uk-UA', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    }).format(new Date(selectedMovie.first_air_date || selectedMovie.release_date))}
+                  </Text>
+                )}
+                <Trailer movie={selectedMovie} />
+              </ModalBody>
+              <ModalFooter>
+                <Button colorScheme='blue' mr={3} onClick={onDetailsClose}>
+                  Закрити
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        )}
+
         <ReactPaginate
           breakLabel="..."
           nextLabel=">"
