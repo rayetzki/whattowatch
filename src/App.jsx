@@ -1,5 +1,5 @@
 import { Container, Flex, Input, Text } from '@chakra-ui/react';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useDeferredValue, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import { Loading } from './Loading';
 import styles from './App.module.css';
@@ -9,6 +9,8 @@ const Movies = lazy(() => import('./Movies'));
 export default function App() {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(500);
+  const deferredQuery = useDeferredValue(query);
   
   return (
     <main className={styles.App}>
@@ -19,7 +21,8 @@ export default function App() {
         <Flex width='100%' direction="column">
           <Input
             id="search" 
-            value={query} 
+            value={query}
+            inputMode="text"
             onChange={e => setQuery(e.target.value)}
             placeholder="Оберіть фільм" 
             type="search" 
@@ -28,17 +31,17 @@ export default function App() {
 
         <Flex minHeight="85vh" align="center" justify="center" direction="column">
           <Suspense fallback={<Loading />}>
-            <Movies query={query} page={page} />
+              <Movies query={deferredQuery} page={page} setTotalPages={setTotalPages} />
           </Suspense>
         </Flex>
         
-        <Container as="footer">
+        <Container as="footer" centerContent marginBottom="16">
           <ReactPaginate
             breakLabel="..."
             nextLabel=">"
             onPageChange={next => setPage(next.selected + 1)}
             pageRangeDisplayed={5}
-            pageCount={500}
+            pageCount={totalPages > 500 ? 500 : totalPages}
             previousLabel="<"
             pageClassName="page-item"
             pageLinkClassName="page-link"

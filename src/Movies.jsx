@@ -1,5 +1,5 @@
 import { Button, Card, CardBody, Flex, Heading, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Text, useDisclosure } from "@chakra-ui/react";
-import { Fragment, lazy, Suspense, useState } from "react";
+import { Fragment, lazy, memo, Suspense, useEffect, useState } from "react";
 import { Loading } from "./Loading";
 import { useData } from "./utils";
 
@@ -22,10 +22,14 @@ function getUrl(query, page, lang = 'uk') {
   return url.toString();
 }
 
-export default function Movies({ query, page }) {
+function Movies({ query, page, setTotalPages }) {
   const { onClose } = useDisclosure();
   const [selectedMovie, setSelectedMovie] = useState(null);
-  const { results: movies } = useData(getUrl(query, page));
+  const { results: movies, total_pages: totalPages } = useData(getUrl(query, page));
+
+  useEffect(() => {
+    setTotalPages(totalPages);
+  }, [totalPages]);
 
   function onDetailsClose() {
     setSelectedMovie(null);
@@ -111,3 +115,5 @@ export default function Movies({ query, page }) {
     </Fragment>
   );
 }
+
+export default memo(Movies);
