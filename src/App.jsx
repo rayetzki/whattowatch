@@ -32,25 +32,27 @@ export default function App() {
           </Suspense>
         </Flex>
         
-        <ReactPaginate
-          breakLabel="..."
-          nextLabel=">"
-          onPageChange={next => setPage(next.selected + 1)}
-          pageRangeDisplayed={5}
-          pageCount={500}
-          previousLabel="<"
-          pageClassName="page-item"
-          pageLinkClassName="page-link"
-          previousClassName="page-item"
-          previousLinkClassName="page-link"
-          nextClassName="page-item"
-          nextLinkClassName="page-link"
-          breakClassName="page-item"
-          breakLinkClassName="page-link"
-          containerClassName="pagination"
-          activeClassName="active"
-          renderOnZeroPageCount={null}
-        />
+        <Container as="footer">
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel=">"
+            onPageChange={next => setPage(next.selected + 1)}
+            pageRangeDisplayed={5}
+            pageCount={500}
+            previousLabel="<"
+            pageClassName="page-item"
+            pageLinkClassName="page-link"
+            previousClassName="page-item"
+            previousLinkClassName="page-link"
+            nextClassName="page-item"
+            nextLinkClassName="page-link"
+            breakClassName="page-item"
+            breakLinkClassName="page-link"
+            containerClassName="pagination"
+            activeClassName="active"
+            renderOnZeroPageCount={null}
+          />
+        </Container>
       </Container>
     </main>
   )
