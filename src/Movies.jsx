@@ -46,7 +46,7 @@ export default function Movies({ query, page }) {
               <Flex align="center" justify="space-between">
                 <Heading size='md'>{movie.title || movie.name}</Heading>
                 <Flex direction="row">
-                  <Image src="/star.svg" width="30" height="30" alt="Star" />
+                  <Image src="/whattowatch/star.svg" width="30" height="30" alt="Star" />
                   {movie.vote_average && (
                     <Text marginLeft="2" fontWeight="bold" fontSize="24">{movie.vote_average.toFixed(2)}</Text>
                   )}
