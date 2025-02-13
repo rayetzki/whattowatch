@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, Flex, Heading, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Text, useDisclosure } from "@chakra-ui/react";
+import { Button, Card, CardBody, Flex, Heading, Image, Dialog, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, Stack, Text, useDisclosure, DialogHeader, DialogBackdrop } from "@chakra-ui/react";
 import { Fragment, lazy, memo, Suspense, useEffect, useState } from "react";
 import { Loading } from "./Loading";
 import { useData } from "./utils";
@@ -72,12 +72,12 @@ function Movies({ query, page, setTotalPages }) {
       ))}
 
       {selectedMovie && (
-        <Modal size='2xl' isOpen={!!selectedMovie} onClose={onDetailsClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>{selectedMovie.title || selectedMovie.name}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
+        <Dialog size='2xl' isOpen={!!selectedMovie} onClose={onDetailsClose}>
+          <DialogBackdrop />
+          <DialogContent>
+            <DialogHeader>{selectedMovie.title || selectedMovie.name}</DialogHeader>
+            <DialogCloseTrigger />
+            <DialogBody>
               <Image
                 src={selectedMovie.poster_path ? posterURL + selectedMovie.poster_path : defaultPoster}
                 alt={selectedMovie.title || selectedMovie.name}
@@ -103,14 +103,14 @@ function Movies({ query, page, setTotalPages }) {
               <Suspense fallback={<Loading />}>
                 <Trailer movie={selectedMovie} />
               </Suspense>
-            </ModalBody>
-            <ModalFooter>
+            </DialogBody>
+            <DialogFooter>
               <Button colorScheme='blue' mr={3} onClick={onDetailsClose}>
                 Закрити
               </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </Fragment>
   );
