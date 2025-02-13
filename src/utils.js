@@ -22,7 +22,9 @@ export function promisify(promise) {
 }
 
 async function getData(url) {
-  const data = await fetch(url).then(response => response.json());
+  const data = await fetch(url, {
+    mode: 'no-cors'
+  }).then(response => response.json());
   return data;
 }
 
