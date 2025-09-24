@@ -72,7 +72,7 @@ function Movies({ query, page, setTotalPages }) {
               <Dialog.Header fontSize='xl'>{selectedMovie.title || selectedMovie.name}</Dialog.Header>
               <Dialog.Body>
                 <Image
-                  src={selectedMovie.poster_path ? 'http://image.tmdb.org/t/p/w500' + selectedMovie.poster_path : defaultPoster}
+                  src={selectedMovie.poster_path ? 'http://image.tmdb.org/t/p/w500' + selectedMovie.poster_path : 'https://comicbook.com/wp-content/uploads/sites/4/2017/09/72d770ba0277ba353152b70695c57921.png'}
                   alt={selectedMovie.title || selectedMovie.name}
                   borderRadius='lg'
                   marginBottom="4"
