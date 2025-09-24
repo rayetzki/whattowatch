@@ -1,7 +1,8 @@
 import { Container, Flex, Input, Text } from '@chakra-ui/react';
 import { lazy, Suspense, useDeferredValue, useState } from 'react';
-import ReactPaginate from 'react-paginate';
 import { Loading } from './Loading';
+import { ErrorBoundary } from 'react-error-boundary';
+import ReactPaginate from 'react-paginate';
 import styles from './App.module.css';
 
 const Movies = lazy(() => import('./Movies'));
@@ -30,9 +31,11 @@ export default function App() {
         </Flex>
 
         <Flex minHeight="85vh" align="center" justify="center" direction="column">
-          <Suspense fallback={<Loading />}>
+          <ErrorBoundary fallbackRender={(props) => <Container>{props.error.toString()}</Container>}>
+            <Suspense fallback={<Loading />}>
               <Movies query={deferredQuery} page={page} setTotalPages={setTotalPages} />
-          </Suspense>
+            </Suspense>
+          </ErrorBoundary>
         </Flex>
         
         <Container as="footer" centerContent marginBottom="16">

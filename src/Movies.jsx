@@ -1,31 +1,21 @@
-import { Button, Card, CardBody, Flex, Heading, Image, Dialog, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, Stack, Text, useDisclosure, DialogHeader, DialogBackdrop } from "@chakra-ui/react";
-import { Fragment, lazy, memo, Suspense, useEffect, useState } from "react";
+import { Button, Card, Flex, Heading, Image, Dialog, Stack, Text, useDisclosure, Container } from "@chakra-ui/react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Loading } from "./Loading";
-import { useData } from "./utils";
-
-const {
-  VITE_API_KEY: API_KEY,
-  VITE_DEFAULT_POSTER_URL: defaultPoster, 
-  VITE_POSTER_URL: posterURL,
-  VITE_MOVIE_API: movieApiUrl,
-  VITE_MOVIE_SEARCH_API: movieSearchApiUrl,
-} = import.meta.env;
+import { fetchMovies } from "./api";
+import useQuery from "./utils";
+import { ErrorBoundary } from "react-error-boundary";
 
 const Trailer = lazy(() => import('./Trailer'));
 
-function getUrl(query, page, lang = 'uk') {
-  const url = new URL(query ? movieSearchApiUrl : movieApiUrl);
-  url.searchParams.set('api_key', API_KEY);
-  url.searchParams.set('language', lang);
-  if (query) url.searchParams.set('query', query?.trim());
-  if (page) url.searchParams.set('page', page);
-  return url.toString();
-}
-
 function Movies({ query, page, setTotalPages }) {
   const { onClose } = useDisclosure();
+
+  const { results: movies, total_pages: totalPages } = useQuery({
+    fn: () => fetchMovies(query, page),
+    key: `movies-${query}-${page}`,
+  });
+
   const [selectedMovie, setSelectedMovie] = useState(null);
-  const { results: movies, total_pages: totalPages } = useData(getUrl(query, page));
 
   useEffect(() => {
     setTotalPages(totalPages);
@@ -37,26 +27,28 @@ function Movies({ query, page, setTotalPages }) {
   };
 
   return (
-    <Fragment>
-      {movies.map(movie => (
-        <Card onClick={() => setSelectedMovie(movie)} cursor="pointer" key={movie.id} margin="8">
-          <CardBody>
+    <Container>
+      {movies.map((movie) => (
+        <Card.Root onClick={() => setSelectedMovie(movie)} cursor="pointer" key={movie.id} margin="8">
+          <Card.Body>
             <Image
-              src={movie.poster_path ? posterURL + movie.poster_path : defaultPoster}
+              src={movie.poster_path ? 'http://image.tmdb.org/t/p/w500' + movie.poster_path : 'https://comicbook.com/wp-content/uploads/sites/4/2017/09/72d770ba0277ba353152b70695c57921.png'}
               alt={movie.title || movie.name}
               borderRadius='lg'
             />
             <Stack mt='6' spacing='3'>
-              <Flex align="center" justify="space-between">
-                <Heading size='md'>{movie.title || movie.name}</Heading>
-                <Flex direction="row">
-                  <Image src="/whattowatch/star.svg" width="30" height="30" alt="Star" />
+              <Flex align="center" justify="space-between" paddingEnd="8">
+                <Heading size='xs'>{movie.title || movie.name}</Heading>
+                <Flex direction="row" align="center" gap="1">
                   {movie.vote_average && (
-                    <Text marginLeft="2" fontWeight="bold" fontSize="24">{movie.vote_average.toFixed(2)}</Text>
+                    <Text fontWeight="bold" margin="0" fontSize="24">{movie.vote_average.toFixed(2)}</Text>
                   )}
+                  <Image src="/whattowatch/star.svg" width="30" height="30" alt="Star" />
                 </Flex>
               </Flex>
-              <Text noOfLines={3} color='grey.200'>{movie.overview}</Text>
+              {movie.overview && (
+                <Text noOfLines={3} color='grey.200'>{movie.overview}</Text>
+              )}
               {movie.first_air_date || movie.release_date && (
                 <Text noOfLines={3} color='grey.600' fontWeight="bold">
                   Прем'єра в Україні: {new Intl.DateTimeFormat('uk-UA', {
@@ -67,53 +59,58 @@ function Movies({ query, page, setTotalPages }) {
                 </Text>
               )}
             </Stack>
-          </CardBody>
-        </Card>
+          </Card.Body>
+        </Card.Root>
       ))}
 
       {selectedMovie && (
-        <Dialog size='2xl' isOpen={!!selectedMovie} onClose={onDetailsClose}>
-          <DialogBackdrop />
-          <DialogContent>
-            <DialogHeader>{selectedMovie.title || selectedMovie.name}</DialogHeader>
-            <DialogCloseTrigger />
-            <DialogBody>
-              <Image
-                src={selectedMovie.poster_path ? posterURL + selectedMovie.poster_path : defaultPoster}
-                alt={selectedMovie.title || selectedMovie.name}
-                borderRadius='lg'
-                marginBottom="4"
-                objectFit="cover"
-              />
-              {selectedMovie.vote_average && (
-                <Text color='grey.100' marginBottom="4" fontWeight="bold">Рейтинг: {selectedMovie.vote_average}</Text>
-              )}
-              {selectedMovie.overview && (
-                <Text color='grey.100' marginBottom="4">{selectedMovie.overview}</Text>
-              )}
-              {selectedMovie.first_air_date || selectedMovie.release_date && (
-                <Text marginBottom="4" color='grey.600' fontSize="16" fontWeight="bold">
-                  Прем'єра: {new Intl.DateTimeFormat('uk-UA', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric'
-                  }).format(new Date(selectedMovie.first_air_date || selectedMovie.release_date))}
-                </Text>
-              )}
-              <Suspense fallback={<Loading />}>
-                <Trailer movie={selectedMovie} />
-              </Suspense>
-            </DialogBody>
-            <DialogFooter>
-              <Button colorScheme='blue' mr={3} onClick={onDetailsClose}>
-                Закрити
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Dialog.Root lazyMount size='xl' open={!!selectedMovie.id} onOpenChange={onDetailsClose}>
+          <Dialog.Backdrop />
+          <Dialog.Trigger />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header fontSize='xl'>{selectedMovie.title || selectedMovie.name}</Dialog.Header>
+              <Dialog.Body>
+                <Image
+                  src={selectedMovie.poster_path ? 'http://image.tmdb.org/t/p/w500' + selectedMovie.poster_path : defaultPoster}
+                  alt={selectedMovie.title || selectedMovie.name}
+                  borderRadius='lg'
+                  marginBottom="4"
+                  margin='0 auto'
+                  objectFit="cover"
+                />
+                {selectedMovie.vote_average && (
+                  <Text color='grey.100' marginBottom="4" fontWeight="bold">Рейтинг: {selectedMovie.vote_average}</Text>
+                )}
+                {selectedMovie.overview && (
+                  <Text color='grey.100' marginBottom="4">{selectedMovie.overview}</Text>
+                )}
+                {selectedMovie.first_air_date || selectedMovie.release_date && (
+                  <Text marginBottom="4" color='grey.600' fontSize="16" fontWeight="bold">
+                    Прем'єра: {new Intl.DateTimeFormat('uk-UA', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    }).format(new Date(selectedMovie.first_air_date || selectedMovie.release_date))}
+                  </Text>
+                )}
+                <ErrorBoundary fallbackRender={(props) => <Container>{props.error.toString()}</Container>}>          
+                  <Suspense fallback={<Loading />}>
+                    <Trailer movie={selectedMovie} />
+                  </Suspense>
+                </ErrorBoundary>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button colorScheme='blue' mr={3} onClick={onDetailsClose}>
+                  Закрити
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Dialog.Root>
       )}
-    </Fragment>
+    </Container>
   );
 }
 
-export default memo(Movies);
+export default Movies;
