@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useState } from "react";
 import { use } from "react";
 
 const cache = new Map();
@@ -9,4 +11,20 @@ export default function useQuery({ fn, key }) {
   const promise = cache.get(key);
   const result = use(promise);
   return result;
+}
+
+export function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
 }

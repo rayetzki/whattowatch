@@ -1,9 +1,9 @@
 import { Button, Card, Flex, Heading, Image, Dialog, Stack, Text, useDisclosure, Container } from "@chakra-ui/react";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, useDeferredValue } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Loading } from "./Loading";
 import { fetchMovies } from "./api";
 import useQuery from "./utils";
-import { ErrorBoundary } from "react-error-boundary";
 
 const Trailer = lazy(() => import('./Trailer'));
 
