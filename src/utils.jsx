@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTransition } from "react";
 import { useState } from "react";
 import { use } from "react";
 
@@ -14,11 +15,12 @@ export default function useQuery({ fn, key }) {
 }
 
 export function useDebounce(value, delay) {
+  const [isPending, startTransition] = useTransition();
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedValue(value);
+      startTransition(() => setDebouncedValue(value));
     }, delay);
 
     return () => {
@@ -26,5 +28,5 @@ export function useDebounce(value, delay) {
     };
   }, [value, delay]);
 
-  return debouncedValue;
+  return [isPending, debouncedValue];
 }

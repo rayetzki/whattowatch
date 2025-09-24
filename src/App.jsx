@@ -1,10 +1,10 @@
 import { Container, Flex, Input, Text } from '@chakra-ui/react';
 import { lazy, Suspense, useState } from 'react';
+import { useDebounce } from './utils';
 import { ErrorBoundary } from 'react-error-boundary';
 import ReactPaginate from 'react-paginate';
 import { Loading } from './Loading';
 import styles from './App.module.css';
-import { useDebounce } from './utils';
 
 const Movies = lazy(() => import('./Movies'));
 
@@ -12,7 +12,7 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(500);
-  const deferredQuery = useDebounce(query, 250);
+  const [isDeferring, deferredQuery] = useDebounce(query, 250);
 
   return (
     <main className={styles.App}>
@@ -27,7 +27,8 @@ export default function App() {
             inputMode="text"
             onChange={e => setQuery(e.target.value)}
             placeholder="Оберіть фільм" 
-            type="search" 
+            type="search"
+            disabled={isDeferring}
           />
         </Flex>
 
