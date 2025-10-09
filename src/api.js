@@ -3,7 +3,7 @@ const {
 } = import.meta.env;
 
 export async function fetchMovies(query, page, lang = 'uk') {
-  const url = new URL(`https://api.themoviedb.org/3/${query ? 'search/movie' : '/movie/now_playing'}`);
+  const url = new URL(`https://api.themoviedb.org/3/${query ? 'search/movie' : '/movie/popular'}`);
 
   url.searchParams.set('language', lang);  
   if (query) url.searchParams.set('query', query?.trim());

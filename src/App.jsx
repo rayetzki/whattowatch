@@ -15,7 +15,7 @@ export default function App() {
   const [isDeferring, deferredQuery] = useDebounce(query, 250);
 
   return (
-    <main className={styles.App}>
+    <Container as="main" className={styles.App}>
       <Container centerContent>
         <Text marginTop="12" marginBottom="12" role="heading" as="h1" fontSize='50px' color='tomato'>
           Кінодовідник  
@@ -62,6 +62,6 @@ export default function App() {
           />
         </Container>
       </Container>
-    </main>
-  )
+    </Container>
+  );
 }
